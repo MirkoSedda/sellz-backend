@@ -9,19 +9,23 @@ import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 const usersRouter = express.Router()
 
-usersRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
-  try {
-    const users = await usersModel.find()
-    res.send(users)
-  } catch (error) {
-    next(error)
+usersRouter.get(
+  "/",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const users = await usersModel.find()
+      res.send(users)
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
 usersRouter.post("/register", async (req, res, next) => {
   try {
     const newUser = new usersModel(req.body)
-
     const { _id } = await newUser.save()
     res.status(201).send({ _id })
   } catch (error) {
@@ -103,7 +107,6 @@ usersRouter.get(
   async (req, res, next) => {
     try {
       console.log("Token: ", req.user.token)
-
       if (req.user.role === "Admin") {
         res.redirect(
           `${process.env.FE_URL}/adminDashboard?accessToken=${req.user.token}`
@@ -148,11 +151,10 @@ usersRouter.put(
         req.body,
         { new: true, runValidators: true }
       )
-
       if (updatedUser) {
         res.send(updatedUser)
       } else {
-        next(createError(404, `User with id ${req.params.userId} not found!`))
+        next(createError(404, `User with id ${req.user._id} not found!`))
       }
     } catch (error) {
       next(error)
