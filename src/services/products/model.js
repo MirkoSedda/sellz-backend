@@ -10,7 +10,7 @@ const ProductSchema = new Schema(
     description: { type: String, required: true },
     comments: [
       {
-        user: { type: String },
+        user: { type: Schema.Types.ObjectId, ref: "User", required: true },
         comment: { type: String },
       },
     ],

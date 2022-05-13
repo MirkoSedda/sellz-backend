@@ -1,55 +1,64 @@
 import express from "express"
 import createError from "http-errors"
 import productsModel from "../products/model.js"
-
+import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 const commentsRouter = express.Router()
 
 //ok
 
-commentsRouter.post("/:productId/comments", async (req, res, next) => {
-  try {
-    const newComment = {
-      ...req.body,
-      commentDate: new Date(),
-    }
-    const product = await productsModel.findByIdAndUpdate(
-      req.params.productId,
-      { $push: { comments: newComment } },
-      { new: true, runValidators: true }
-    )
-    if (product) {
-      res.send(product)
-    } else {
-      next(
-        createError(404, `Product with id ${req.params.productId} not found!`)
+commentsRouter.post(
+  "/:productId/comments",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const newComment = {
+        ...req.body,
+        commentDate: new Date(),
+      }
+      const product = await productsModel.findByIdAndUpdate(
+        req.params.productId,
+        { $push: { comments: newComment } },
+        { new: true, runValidators: true }
       )
+      if (product) {
+        res.send(product)
+      } else {
+        next(
+          createError(404, `Product with id ${req.params.productId} not found!`)
+        )
+      }
+    } catch (error) {
+      console.log(error)
     }
-  } catch (error) {
-    console.log(error)
   }
-})
+)
 
 //ok
 
-commentsRouter.get("/:productId/comments", async (req, res, next) => {
-  try {
-    const product = await productsModel.findById(req.params.productId)
-    if (product) {
-      res.send(product.comments)
-    } else {
-      next(
-        createError(404, `Product with id ${req.params.productId} not found!`)
-      )
+commentsRouter.get(
+  "/:productId/comments",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const product = await productsModel.findById(req.params.productId)
+      if (product) {
+        res.send(product.comments)
+      } else {
+        next(
+          createError(404, `Product with id ${req.params.productId} not found!`)
+        )
+      }
+    } catch (error) {
+      next(error)
     }
-  } catch (error) {
-    next(error)
   }
-})
+)
 
 //ok
 
 commentsRouter.get(
   "/:productId/comments/:commentId",
+  JWTAuthMiddleware,
   async (req, res, next) => {
     try {
       const product = await productsModel.findById(req.params.productId)
@@ -85,6 +94,7 @@ commentsRouter.get(
 
 commentsRouter.put(
   "/:productId/comments/:commentId",
+  JWTAuthMiddleware,
   async (req, res, next) => {
     try {
       const product = await productsModel.findById(req.params.productId)
@@ -128,6 +138,7 @@ commentsRouter.put(
 
 commentsRouter.delete(
   "/:productId/comments/:commentId",
+  JWTAuthMiddleware,
   async (req, res, next) => {
     try {
       const productToUpdate = await productsModel.findByIdAndUpdate(

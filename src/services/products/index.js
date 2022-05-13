@@ -2,6 +2,8 @@ import express from "express"
 import createError from "http-errors"
 import productsModel from "./model.js"
 import q2m from "query-to-mongo"
+import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 const productsRouter = express.Router()
 
@@ -29,16 +31,21 @@ productsRouter.get("/", async (req, res, next) => {
   }
 })
 
-productsRouter.post("/", async (req, res, next) => {
-  try {
-    const newProduct = new productsModel(req.body)
-    const { _id } = await newProduct.save()
-    res.status(201).send({ _id })
-  } catch (error) {
-    next(error)
-    console.log(error)
+productsRouter.post(
+  "/",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const newProduct = new productsModel(req.body)
+      const { _id } = await newProduct.save()
+      res.status(201).send({ _id })
+    } catch (error) {
+      next(error)
+      console.log(error)
+    }
   }
-})
+)
 
 productsRouter.get("/:productId", async (req, res, next) => {
   try {
@@ -55,35 +62,47 @@ productsRouter.get("/:productId", async (req, res, next) => {
   }
 })
 
-productsRouter.put("/:productId", async (req, res, next) => {
-  try {
-    const updatedProduct = await productsModel.findByIdAndUpdate(
-      req.params.productId, // WHO
-      req.body, // HOW
-      { new: true, runValidators: true }
-    )
-    if (updatedProduct) res.send(updatedProduct)
-    else
-      next(createError(404, `blog with id ${req.params.productId} not found!`))
-  } catch (error) {
-    next(error)
-  }
-})
-
-productsRouter.delete("/:productId", async (req, res, next) => {
-  try {
-    const deletedProducts = await productsModel.findByIdAndDelete(
-      req.params.productId
-    )
-    if (deletedProducts) res.status(204).send()
-    else
-      next(
-        createError(404, `Product with id ${req.params.productId} not found!`)
+productsRouter.put(
+  "/:productId",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const updatedProduct = await productsModel.findByIdAndUpdate(
+        req.params.productId, // WHO
+        req.body, // HOW
+        { new: true, runValidators: true }
       )
-  } catch (error) {
-    next(error)
-    console.log(error)
+      if (updatedProduct) res.send(updatedProduct)
+      else
+        next(
+          createError(404, `blog with id ${req.params.productId} not found!`)
+        )
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
+
+productsRouter.delete(
+  "/:productId",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const deletedProducts = await productsModel.findByIdAndDelete(
+        req.params.productId
+      )
+      if (deletedProducts) res.status(204).send()
+      else
+        next(
+          createError(404, `Product with id ${req.params.productId} not found!`)
+        )
+    } catch (error) {
+      next(error)
+      console.log(error)
+    }
+  }
+)
 
 export default productsRouter
