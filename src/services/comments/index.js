@@ -4,13 +4,15 @@ import productsModel from "../products/model.js"
 
 const commentsRouter = express.Router()
 
+//ok
+
 commentsRouter.post("/:productId/comments", async (req, res, next) => {
   try {
     const newComment = {
       ...req.body,
       commentDate: new Date(),
     }
-    const product = await productModel.findByIdAndUpdate(
+    const product = await productsModel.findByIdAndUpdate(
       req.params.productId,
       { $push: { comments: newComment } },
       { new: true, runValidators: true }
@@ -27,6 +29,8 @@ commentsRouter.post("/:productId/comments", async (req, res, next) => {
   }
 })
 
+//ok
+
 commentsRouter.get("/:productId/comments", async (req, res, next) => {
   try {
     const product = await productsModel.findById(req.params.productId)
@@ -41,6 +45,8 @@ commentsRouter.get("/:productId/comments", async (req, res, next) => {
     next(error)
   }
 })
+
+//ok
 
 commentsRouter.get(
   "/:productId/comments/:commentId",
@@ -75,6 +81,8 @@ commentsRouter.get(
   }
 )
 
+//ok
+
 commentsRouter.put(
   "/:productId/comments/:commentId",
   async (req, res, next) => {
@@ -96,7 +104,10 @@ commentsRouter.put(
           res.send(product)
         } else {
           next(
-            createError(404, `Product with id ${req.params.productId} is not found!`)
+            createError(
+              404,
+              `Product with id ${req.params.productId} is not found!`
+            )
           )
         }
       } else {
@@ -112,6 +123,8 @@ commentsRouter.put(
     }
   }
 )
+
+//ok
 
 commentsRouter.delete(
   "/:productId/comments/:commentId",
