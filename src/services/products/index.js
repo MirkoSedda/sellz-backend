@@ -1,10 +1,11 @@
 import express from "express"
 import createError from "http-errors"
-import productModel from "./model.js"
+import productsModel from "./model.js"
 import q2m from "query-to-mongo"
-import usersSchema from "../users/model.js"
 
 const productsRouter = express.Router()
+
+//PAGINATION IS BROKEN - TO FIX
 
 productsRouter.get("/", async (req, res, next) => {
   try {
@@ -15,10 +16,11 @@ productsRouter.get("/", async (req, res, next) => {
       .sort(mongoQuery.options.sort) //Mongo will ALWAYS do SORT, SKIP, LIMIT no matter what!
       .skip(mongoQuery.options.skip, 0)
       .limit(mongoQuery.options.limit, 20)
-      .populate({ path: "user" })
     res.send({
+      //PLS FIX ME IM BROKEN
       links: mongoQuery.links(`http://localhost:3001/products`, total),
       total,
+      //PLS FIX ME IM BROKEN
       totalPages: Math.ceil(total / mongoQuery.options.limit),
       products,
     })
