@@ -31,24 +31,16 @@ usersRouter.post("/register", async (req, res, next) => {
 
 usersRouter.post("/login", async (req, res, next) => {
   try {
-    // 1. Obtain credentials from req.body
     const { email, password } = req.body
-
-    // 2. Verify credentials
     const user = await usersModel.checkCredentials(email, password)
-
     if (user) {
-      // 3. If credentials are ok we are going to generate an Access Token and send it as a response
-
       const accessToken = await generateAccessToken({
         _id: user._id,
         role: user.role,
       })
-
       res.send({ accessToken })
     } else {
-      // 4. If credentials are not fine --> throw an error (401)
-      next(createError(401, `Credentials are not ok!`))
+      next(createError(401, `Credentials are not valid!`))
     }
   } catch (error) {
     next(error)
@@ -77,7 +69,6 @@ usersRouter.put("/me", JWTAuthMiddleware, async (req, res, next) => {
         new: true,
       }
     )
-
     if (modifiedUser) {
       res.send(modifiedUser)
     } else {
@@ -91,7 +82,6 @@ usersRouter.put("/me", JWTAuthMiddleware, async (req, res, next) => {
 usersRouter.delete("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const deletedUser = await usersModel.findByIdAndDelete(req.user._id)
-
     if (deletedUser) {
       res.send()
     } else {

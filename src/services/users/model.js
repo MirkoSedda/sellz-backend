@@ -6,10 +6,9 @@ const { Schema, model } = mongoose
 const UserSchema = new Schema(
   {
     name: { type: String },
-    surname: { type: String, required: true },
+    // surname: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
-    // avatar: { type: String },
     role: { type: String, enum: ["User", "Admin"], default: "User" },
   },
   {
@@ -20,7 +19,6 @@ const UserSchema = new Schema(
 UserSchema.pre("save", async function (next) {
   const newUser = this
   const password = newUser.password
-
   if (newUser.isModified("password")) {
     const hash = await bcrypt.hash(password, 10)
     newUser.password = hash
@@ -31,16 +29,13 @@ UserSchema.pre("save", async function (next) {
 UserSchema.methods.toJSON = function () {
   const userDocument = this
   const userObject = userDocument.toObject()
-
   delete userObject.password
   delete userObject.__v
-
   return userObject
 }
 
 UserSchema.statics.checkCredentials = async function (email, password) {
   const user = await this.findOne({ email })
-
   if (user) {
     const isMatch = await bcrypt.compare(password, user.password)
 

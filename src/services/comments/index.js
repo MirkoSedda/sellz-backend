@@ -1,106 +1,139 @@
-// import express from 'express'
-// import createError from 'http-errors'
-// import blogsModel from '../blogs/model.js'
+import express from "express"
+import createError from "http-errors"
+import productsModel from "../products/model.js"
 
-// const commentsRouter = express.Router()
+const commentsRouter = express.Router()
 
-// commentsRouter.post('/:blogId/comments', async (req, res, next) => {
-//     try {
-//         const blog = await blogsModel.findById(req.params.blogId, { _id: 0 })
-//         console.log(blog)
-//         if (blog) {
-//             const comments = req.body
-//             console.log(comments)
-//             const commentToInsert = {
-//                 ...comments,
-//                 commentDate: new Date(),
-//             }
-//             const modifiedBlog = await blogsModel.findByIdAndUpdate(
-//                 req.params.blogId,
-//                 { $push: { comments: commentToInsert } },
-//                 { new: true }
-//             )
-//             if (modifiedBlog) res.send(modifiedBlog)
-//             else next(createError(404, `Blog with id ${req.params.userId} not found!`))
-//         } else {
-//             next(createError(404, `Blog with id ${req.body.bookId} has no comments!`))
-//         }
-//     } catch (error) {
-//         next(error)
-//     }
-// })
+commentsRouter.post("/:productId/comments", async (req, res, next) => {
+  try {
+    const newComment = {
+      ...req.body,
+      commentDate: new Date(),
+    }
+    const product = await productModel.findByIdAndUpdate(
+      req.params.productId,
+      { $push: { comments: newComment } },
+      { new: true, runValidators: true }
+    )
+    if (product) {
+      res.send(product)
+    } else {
+      next(
+        createError(404, `Product with id ${req.params.productId} not found!`)
+      )
+    }
+  } catch (error) {
+    console.log(error)
+  }
+})
 
-// commentsRouter.get("/:blogId/comments", async (req, res, next) => {
-//     try {
-//         const blog = await blogsModel.findById(req.params.blogId)
-//         if (blog) {
-//             res.send(blog.comments)
-//         } else {
-//             next(createError(404, `Blog with id ${req.params.userId} not found!`))
-//         }
-//     } catch (error) {
-//         next(error)
-//     }
-// })
+commentsRouter.get("/:productId/comments", async (req, res, next) => {
+  try {
+    const product = await productsModel.findById(req.params.productId)
+    if (product) {
+      res.send(product.comments)
+    } else {
+      next(
+        createError(404, `Product with id ${req.params.productId} not found!`)
+      )
+    }
+  } catch (error) {
+    next(error)
+  }
+})
 
-// commentsRouter.get("/:blogId/comments/:commentId", async (req, res, next) => {
-//     try {
-//         const blog = await blogsModel.findById(req.params.blogId)
-//         if (blog) {
-//             const comment = blog.comments.find(comment => comment._id.toString() === req.params.commentId)
+commentsRouter.get(
+  "/:productId/comments/:commentId",
+  async (req, res, next) => {
+    try {
+      const product = await productsModel.findById(req.params.productId)
+      if (product) {
+        const comment = product.comments.find(
+          comment => comment._id.toString() === req.params.commentId
+        )
+        if (comment) {
+          res.send(comment)
+        } else {
+          next(
+            createError(
+              404,
+              `Comment with id ${req.params.commentId} is not found!`
+            )
+          )
+        }
+      } else {
+        next(
+          createError(
+            404,
+            `Product with id ${req.params.productId} is not found!`
+          )
+        )
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 
-//             if (comment) {
-//                 res.send(comment)
-//             } else {
-//                 next(createError(404, `Comment with id ${req.params.commentId} is not found!`))
-//             }
-//         } else {
-//             next(createError(404, `Blog with id ${req.params.blogId} isnot found!`))
-//         }
-//     } catch (error) {
-//         next(error)
-//     }
-// })
+commentsRouter.put(
+  "/:productId/comments/:commentId",
+  async (req, res, next) => {
+    try {
+      const product = await productsModel.findById(req.params.productId)
+      if (product) {
+        const index = product.comments.findIndex(
+          comment => comment._id.toString() === req.params.commentId
+        )
 
-// commentsRouter.put("/:blogId/comments/:commentId", async (req, res, next) => {
-//     try {
-//         const blog = await blogsModel.findById(req.params.blogId)
-//         if (blog) {
-//             const index = blog.comments.findIndex(comment => comment._id.toString() === req.params.commentId)
+        if (index !== -1) {
+          product.comments[index] = {
+            ...product.comments[index].toObject(),
+            ...req.body,
+          }
 
-//             if (index !== -1) {
-//                 blog.comments[index] = { ...blog.comments[index].toObject(), ...req.body }
+          await product.save()
 
-//                 await blog.save()
+          res.send(product)
+        } else {
+          next(
+            createError(404, `Product with id ${req.params.productId} is not found!`)
+          )
+        }
+      } else {
+        next(
+          createError(
+            404,
+            `Comment with id ${req.params.commentId} is not found!`
+          )
+        )
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 
-//                 res.send(blog)
-//             } else {
-//                 next(createError(404, `Blog with id ${req.params.blogId} is not found!`))
-//             }
-//         } else {
-//             next(createError(404, `Comment with id ${req.params.commentId} is not found!`))
-//         }
-//     } catch (error) {
-//         next(error)
-//     }
-// })
+commentsRouter.delete(
+  "/:productId/comments/:commentId",
+  async (req, res, next) => {
+    try {
+      const productToUpdate = await productsModel.findByIdAndUpdate(
+        req.params.productId,
+        { $pull: { comments: { _id: req.params.commentId } } },
+        { new: true }
+      )
 
-// commentsRouter.delete("/:blogId/comments/:commentId", async (req, res, next) => {
-//     try {
-//         const blogToModify = await blogsModel.findByIdAndUpdate(
-//             req.params.blogId,
-//             { $pull: { comments: { _id: req.params.commentId } } },
-//             { new: true }
-//         )
+      if (productToUpdate) {
+        res.send(productToUpdate)
+      } else {
+        next(
+          createError(404, `Blog with id ${req.params.productId} is not found!`)
+        )
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 
-//         if (blogToModify) {
-//             res.send(blogToModify)
-//         } else {
-//             next(createError(404, `Blog with id ${req.params.blogId} is not found!`))
-//         }
-//     } catch (error) {
-//         next(error)
-//     }
-// })
-
-// export default commentsRouter
+export default commentsRouter

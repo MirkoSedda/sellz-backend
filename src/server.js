@@ -4,10 +4,10 @@ import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import passport from "passport"
 import googleStrategy from "./auth/OAuth.js"
+import productsRouter from "./services/products/index.js"
+import commentsRouter from "./services/comments/index.js"
+import usersRouter from "./services/users/index.js"
 
-// import blogsRouter from "./services/blogs/index.js"
-// import commentsRouter from "./services/comments/index.js"
-// import authorsRouters from "./services/authors/index.js"
 import {
   badRequestHandler,
   unauthorizedHandler,
@@ -29,8 +29,8 @@ server.use(passport.initialize())
 
 // ****************************************** ENDPOINTS ***************************************
 
-// server.use("/blogs", [blogsRouter, commentsRouter])
-server.use("/users", usersRouters)
+server.use("/products", [productsRouter, commentsRouter])
+server.use("/users", usersRouter)
 
 // ***************************************** ERROR HANDLERS ***********************************
 
