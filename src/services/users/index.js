@@ -35,6 +35,7 @@ usersRouter.post("/register", async (req, res, next) => {
 
 usersRouter.post("/login", async (req, res, next) => {
   try {
+    console.log("req.body: ", req.body)
     const { email, password } = req.body
     const user = await usersModel.checkCredentials(email, password)
     if (user) {
@@ -42,7 +43,7 @@ usersRouter.post("/login", async (req, res, next) => {
         _id: user._id,
         role: user.role,
       })
-      res.send({ accessToken })
+      res.send({ user, accessToken })
     } else {
       next(createError(401, `Credentials are not valid!`))
     }
