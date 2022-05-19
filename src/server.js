@@ -4,10 +4,11 @@ import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import passport from "passport"
 import googleStrategy from "./auth/OAuth.js"
+import usersRouter from "./services/users/index.js"
+import categoryRouter from "./services/categories/index.js"
 import productsRouter from "./services/products/index.js"
 import commentsRouter from "./services/comments/index.js"
-import usersRouter from "./services/users/index.js"
-
+import morgan from "morgan"
 import {
   badRequestHandler,
   unauthorizedHandler,
@@ -26,11 +27,13 @@ passport.use("google", googleStrategy)
 server.use(cors())
 server.use(express.json())
 server.use(passport.initialize())
+server.use(morgan("tiny"))
 
 // ****************************************** ENDPOINTS ***************************************
 
-server.use("/products", [productsRouter, commentsRouter])
 server.use("/users", usersRouter)
+server.use("/category", categoryRouter)
+server.use("/products", [productsRouter, commentsRouter])
 
 // ***************************************** ERROR HANDLERS ***********************************
 
