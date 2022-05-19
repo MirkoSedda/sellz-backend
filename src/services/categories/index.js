@@ -1,33 +1,19 @@
 import express from "express"
+import slugify from "slugify"
 import createError from "http-errors"
-import categoryModel from "./model.js"
-import q2m from "query-to-mongo"
+import categoriesModel from "./model.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
-const categoryRouter = express.Router()
+const categoriesRouter = express.Router()
 
-categoryRouter.get(
+categoriesRouter.post(
   "/",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const categories = await categoryModel.find()
-      res.send(categories)
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-
-categoryRouter.post(
-  "/",
-  JWTAuthMiddleware,
-  adminOnlyMiddleware,
-  async (req, res, next) => {
-    try {
-      const newCategory = new categoryModel(req.body)
+      const newCategory = new categoriesModel(req.body)
       const { _id } = await newCategory.save()
       res.status(201).send({ _id })
     } catch (error) {
@@ -37,9 +23,23 @@ categoryRouter.post(
   }
 )
 
-categoryRouter.get("/:slug", async (req, res, next) => {
+categoriesRouter.get(
+  "/",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const categories = await categoriesModel.find()
+      res.send(categories)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+categoriesRouter.get("/:slug", async (req, res, next) => {
   try {
-    const category = await categoryModel.find(req.params.slug)
+    const category = await categoriesModel.find(req.params.slug)
     if (category) res.send(category)
     else
       next(
@@ -52,13 +52,13 @@ categoryRouter.get("/:slug", async (req, res, next) => {
   }
 })
 
-categoryRouter.put(
+categoriesRouter.put(
   "/:slug",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const updatedCategory = await categoryModel.findOneAndUpdate(
+      const updatedCategory = await categoriesModel.findOneAndUpdate(
         req.params.slug,
         req.body,
         { new: true, runValidators: true }
@@ -74,13 +74,13 @@ categoryRouter.put(
   }
 )
 
-categoryRouter.delete(
+categoriesRouter.delete(
   "/:slug",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const deletedCategory = await categoryModel.findOneAndUpdate(
+      const deletedCategory = await categoriesModel.findOneAndUpdate(
         req.params.slug
       )
       if (deletedCategory) res.status(204).send()
@@ -95,4 +95,4 @@ categoryRouter.delete(
   }
 )
 
-export default categoryRouter
+export default categoriesRouter

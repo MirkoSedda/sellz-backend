@@ -33,6 +33,7 @@
     "passport-google-oauth20": "^2.0.0",
     "pdfmake": "^0.1.71",
     "query-to-mongo": "^0.10.2",
+    "slugify": "^1.6.5",
     "striptags": "^3.1.1",
     "uniqid": "^5.3.0"
   }

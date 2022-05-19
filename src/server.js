@@ -5,7 +5,7 @@ import cors from "cors"
 import passport from "passport"
 import googleStrategy from "./auth/OAuth.js"
 import usersRouter from "./services/users/index.js"
-import categoryRouter from "./services/categories/index.js"
+import categoriesRouter from "./services/categories/index.js"
 import productsRouter from "./services/products/index.js"
 import commentsRouter from "./services/comments/index.js"
 import morgan from "morgan"
@@ -32,7 +32,7 @@ server.use(morgan("tiny"))
 // ****************************************** ENDPOINTS ***************************************
 
 server.use("/users", usersRouter)
-server.use("/category", categoryRouter)
+server.use("/category", categoriesRouter)
 server.use("/products", [productsRouter, commentsRouter])
 
 // ***************************************** ERROR HANDLERS ***********************************
