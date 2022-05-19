@@ -32,7 +32,7 @@ server.use(morgan("tiny"))
 // ****************************************** ENDPOINTS ***************************************
 
 server.use("/users", usersRouter)
-server.use("/category", categoriesRouter)
+server.use("/categories", categoriesRouter)
 server.use("/products", [productsRouter, commentsRouter])
 
 // ***************************************** ERROR HANDLERS ***********************************

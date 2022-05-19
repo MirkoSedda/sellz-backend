@@ -7,15 +7,20 @@ import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 const categoriesRouter = express.Router()
 
+//ok!
 categoriesRouter.post(
   "/",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const newCategory = new categoriesModel(req.body)
-      const { _id } = await newCategory.save()
-      res.status(201).send({ _id })
+      const { name } = req.body
+      const newCategory = new categoriesModel({
+        name,
+        slug: slugify(name),
+      })
+      await newCategory.save()
+      res.status(201).send(newCategory)
     } catch (error) {
       next(error)
       console.log(error)
@@ -23,6 +28,7 @@ categoriesRouter.post(
   }
 )
 
+//ok
 categoriesRouter.get(
   "/",
   JWTAuthMiddleware,
@@ -30,16 +36,17 @@ categoriesRouter.get(
   async (req, res, next) => {
     try {
       const categories = await categoriesModel.find()
-      res.send(categories)
+      res.status(200).send(categories)
     } catch (error) {
       next(error)
     }
   }
 )
 
+//ok!
 categoriesRouter.get("/:slug", async (req, res, next) => {
   try {
-    const category = await categoriesModel.find(req.params.slug)
+    const category = await categoriesModel.findOne({ slug: req.params.slug })
     if (category) res.send(category)
     else
       next(
@@ -59,10 +66,14 @@ categoriesRouter.put(
   async (req, res, next) => {
     try {
       const updatedCategory = await categoriesModel.findOneAndUpdate(
-        req.params.slug,
+        {
+          slug: req.params.slug,
+        },
         req.body,
         { new: true, runValidators: true }
       )
+      console.log(req.params)
+      console.log(req.params.slug)
       if (updatedCategory) res.send(updatedCategory)
       else
         next(
@@ -80,14 +91,12 @@ categoriesRouter.delete(
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const deletedCategory = await categoriesModel.findOneAndUpdate(
-        req.params.slug
-      )
+      const deletedCategory = await categoriesModel.findOneAndDelete({
+        slug: req.params.slug,
+      })
       if (deletedCategory) res.status(204).send()
       else
-        next(
-          createError(404, `Category with slug ${req.params.slug} not found!`)
-        )
+        next(createError(404, `Category with slug ${req.body.slug} not found!`))
     } catch (error) {
       next(error)
       console.log(error)
