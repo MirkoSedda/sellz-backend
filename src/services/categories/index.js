@@ -7,7 +7,6 @@ import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 const categoriesRouter = express.Router()
 
-//ok!
 categoriesRouter.post(
   "/",
   JWTAuthMiddleware,
@@ -28,22 +27,15 @@ categoriesRouter.post(
   }
 )
 
-//ok
-categoriesRouter.get(
-  "/",
-  JWTAuthMiddleware,
-  adminOnlyMiddleware,
-  async (req, res, next) => {
-    try {
-      const categories = await categoriesModel.find()
-      res.status(200).send(categories)
-    } catch (error) {
-      next(error)
-    }
+categoriesRouter.get("/", async (req, res, next) => {
+  try {
+    const categories = await categoriesModel.find()
+    res.status(200).send(categories)
+  } catch (error) {
+    next(error)
   }
-)
+})
 
-//ok!
 categoriesRouter.get("/:slug", async (req, res, next) => {
   try {
     const category = await categoriesModel.findOne({ slug: req.params.slug })

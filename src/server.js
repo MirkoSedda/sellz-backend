@@ -8,6 +8,7 @@ import usersRouter from "./services/users/index.js"
 import categoriesRouter from "./services/categories/index.js"
 import productsRouter from "./services/products/index.js"
 import commentsRouter from "./services/comments/index.js"
+import subCategoriesRouter from "./services/subcategories/index.js"
 import morgan from "morgan"
 import {
   badRequestHandler,
@@ -33,6 +34,7 @@ server.use(morgan("tiny"))
 
 server.use("/users", usersRouter)
 server.use("/categories", categoriesRouter)
+server.use("/subcategories", subCategoriesRouter)
 server.use("/products", [productsRouter, commentsRouter])
 
 // ***************************************** ERROR HANDLERS ***********************************
