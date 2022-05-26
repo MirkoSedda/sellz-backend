@@ -1,0 +1,29 @@
+import mongoose from "mongoose"
+
+const { Schema, model } = mongoose
+
+const SubCategorySchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: "Name is required",
+      trim: true,
+      minlength: [2, "Too Short"],
+      maxlength: [30, "Too Long"],
+    },
+    slug: {
+      type: String,
+      required: "Slug is required",
+      unique: true,
+      trim: true,
+      lowercase: true,
+      index: true,
+    },
+    parent: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+  },
+  {
+    timestamps: true,
+  }
+)
+
+export default model("SubCategory", SubCategorySchema)

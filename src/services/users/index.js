@@ -2,7 +2,6 @@ import express from "express"
 import passport from "passport"
 import createError from "http-errors"
 import usersModel from "./model.js"
-
 import { generateAccessToken } from "../../auth/tools.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"

@@ -7,9 +7,12 @@ const UserSchema = new Schema(
   {
     name: { type: String, required: true, unique: true },
     surname: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, index: true, unique: true },
     password: { type: String, required: true },
+    address: { type: String },
     role: { type: String, enum: ["User", "Admin"], default: "User" },
+    cart: { type: Array, default: [] },
+    wishlist: { type: Schema.Types.ObjectId, ref: "Product" },
   },
   {
     timestamps: true,
