@@ -1,35 +1,12 @@
 import express from "express"
 import createError from "http-errors"
 import productsModel from "./model.js"
+import slugify from "slugify"
 import q2m from "query-to-mongo"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 const productsRouter = express.Router()
-
-//PAGINATION IS BROKEN - TO FIX
-
-productsRouter.get("/", async (req, res, next) => {
-  try {
-    const mongoQuery = q2m(req.query)
-    const total = await productsModel.countDocuments(mongoQuery.criteria)
-    const products = await productsModel
-      .find(mongoQuery.criteria, mongoQuery.options.fields)
-      .sort(mongoQuery.options.sort) //Mongo will ALWAYS do SORT, SKIP, LIMIT no matter what!
-      .skip(mongoQuery.options.skip, 0)
-      .limit(mongoQuery.options.limit, 20)
-    res.send({
-      //PLS FIX ME IM BROKEN
-      links: mongoQuery.links(`http://localhost:3001/products`, total),
-      total,
-      //PLS FIX ME IM BROKEN
-      totalPages: Math.ceil(total / mongoQuery.options.limit),
-      products,
-    })
-  } catch (error) {
-    next(error)
-  }
-})
 
 productsRouter.post(
   "/",
@@ -37,15 +14,29 @@ productsRouter.post(
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
+      console.log(req.body)
+      req.body.slug = slugify(req.body.title)
       const newProduct = new productsModel(req.body)
-      const { _id } = await newProduct.save()
-      res.status(201).send({ _id })
+      await newProduct.save()
+      res.status(201).send(newProduct)
     } catch (error) {
       next(error)
-      console.log(error)
+      res.status(400).json(error.message)
+      console.log(error.message)
     }
   }
 )
+
+productsRouter.get("/", async (req, res, next) => {
+  try {
+    const products = await productsModel.find({})
+    if (products) res.send(products)
+    else next(createError(404), `Products not found.`)
+  } catch (error) {
+    next(error)
+    console.log(error)
+  }
+})
 
 productsRouter.get("/:productId", async (req, res, next) => {
   try {

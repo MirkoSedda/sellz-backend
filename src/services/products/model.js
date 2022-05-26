@@ -4,16 +4,71 @@ const { Schema, model } = mongoose
 
 const ProductSchema = new Schema(
   {
-    category: { type: String, required: true },
-    name: { type: String, required: true },
-    image: { type: String, required: true },
-    description: { type: String, required: true },
-    comments: [
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+      text: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      index: true,
+      text: true,
+      unique: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      maxlength: 2000,
+      text: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+    },
+    subCategories: [
       {
-        user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        comment: { type: String },
+        type: Schema.Types.ObjectId,
+        ref: "SubCategory",
       },
     ],
+    quantity: Number,
+    sold: {
+      type: Number,
+      default: 0,
+    },
+    // images: Array,
+    shipping: {
+      type: String,
+      enum: ["Yes", "No"],
+    },
+    color: {
+      type: String,
+      enum: ["Red", "Green", "Blue", "Black", "White"],
+    },
+    brand: {
+      type: String,
+      enum: ["Apple", "Samsung", "Microsoft", "Lenovo", "Asus"],
+    },
+    // rating: [
+    //   {
+    //     star: Number,
+    //     postedBy: {
+    //       type: Schema.Types.ObjectId,
+    //       ref: "User",
+    //     },
+    //   },
+    // ],
   },
   {
     timestamps: true,
