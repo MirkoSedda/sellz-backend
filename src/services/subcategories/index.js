@@ -5,7 +5,7 @@ import SubCategoriesModel from "./model.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
-const subCategoriesRouter = express.Router()
+export const subCategoriesRouter = express.Router()
 
 subCategoriesRouter.post(
   "/",
@@ -103,4 +103,3 @@ subCategoriesRouter.delete(
   }
 )
 
-export default subCategoriesRouter

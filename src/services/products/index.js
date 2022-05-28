@@ -6,7 +6,7 @@ import q2m from "query-to-mongo"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
-const productsRouter = express.Router()
+export const productsRouter = express.Router()
 
 productsRouter.post(
   "/",
@@ -95,5 +95,3 @@ productsRouter.delete(
     }
   }
 )
-
-export default productsRouter
