@@ -8,6 +8,22 @@ import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const productsRouter = express.Router()
 
+productsRouter.get("/limit/:limit", async (req, res, next) => {
+  try {
+    const products = await productsModel
+      .find({})
+      .limit(parseInt(req.params.limit))
+      .populate("Category")
+      .populate("subCategories")
+      .sort([["createdAt", -1]])
+    if (products) res.send(products)
+    else next(createError(404), `Products not found.`)
+  } catch (error) {
+    next(error)
+    console.log(error)
+  }
+})
+
 productsRouter.post(
   "/",
   JWTAuthMiddleware,
@@ -27,25 +43,19 @@ productsRouter.post(
   }
 )
 
-productsRouter.get("/", async (req, res, next) => {
+productsRouter.get("/:slug", async (req, res, next) => {
   try {
-    const products = await productsModel.find({})
-    if (products) res.send(products)
-    else next(createError(404), `Products not found.`)
-  } catch (error) {
-    next(error)
-    console.log(error)
-  }
-})
-
-productsRouter.get("/:productId", async (req, res, next) => {
-  try {
-    const product = await productsModel.findById(req.params.productId)
+    const product = await productsModel
+      .findOne({ slug: req.params.slug })
+      .populate("Category")
+      // .populate("subCategories")
+      .sort([["createdAt", -1]])
+    console.log(product)
     if (product) res.send(product)
     else
       next(
         createError(404),
-        `Product with the ID ${req.params.productId} is not found.`
+        `Product with the slug ${req.params.slug} is not found.`
       )
   } catch (error) {
     next(error)
@@ -54,20 +64,20 @@ productsRouter.get("/:productId", async (req, res, next) => {
 })
 
 productsRouter.put(
-  "/:productId",
+  "/:slug",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const updatedProduct = await productsModel.findByIdAndUpdate(
-        req.params.productId, // WHO
+      const updatedProduct = await productsModel.findOneAndUpdate(
+        req.params.slug, // WHO
         req.body, // HOW
         { new: true, runValidators: true }
       )
       if (updatedProduct) res.send(updatedProduct)
       else
         next(
-          createError(404, `blog with id ${req.params.productId} not found!`)
+          createError(404, `Product with slug ${req.params.slug} not found!`)
         )
     } catch (error) {
       next(error)
@@ -76,18 +86,18 @@ productsRouter.put(
 )
 
 productsRouter.delete(
-  "/:productId",
+  "/:slug",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const deletedProducts = await productsModel.findByIdAndDelete(
-        req.params.productId
-      )
-      if (deletedProducts) res.status(204).send()
+      const deleteProduct = await productsModel.findOneAndRemove({
+        slug: req.params.slug,
+      })
+      if (deleteProduct) res.status(204).send("Product deleted successfully!")
       else
         next(
-          createError(404, `Product with id ${req.params.productId} not found!`)
+          createError(404, `Product with slug ${req.params.slug} wasnt found!`)
         )
     } catch (error) {
       next(error)

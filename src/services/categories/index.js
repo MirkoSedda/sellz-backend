@@ -30,24 +30,10 @@ categoriesRouter.post(
 
 categoriesRouter.get("/", async (req, res, next) => {
   try {
-    const categories = await categoriesModel.find()
+    const categories = await categoriesModel.find({}).sort({ createdAt: -1 })
     res.status(200).send(categories)
   } catch (error) {
     next(error)
-  }
-})
-
-categoriesRouter.get("/subcategories/:_id", async (req, res, next) => {
-  try {
-    const subCategory = await subCategoriesModel.find({
-      parent: req.params._id,
-    })
-    if (subCategory) res.send(subCategory)
-    else
-      next(createError(404), `Sub category with id ${req.params.id} not found.`)
-  } catch (error) {
-    next(error)
-    console.log(error)
   }
 })
 
@@ -110,3 +96,17 @@ categoriesRouter.delete(
     }
   }
 )
+
+categoriesRouter.get("/subcategories/:_id", async (req, res, next) => {
+  try {
+    const subCategory = await subCategoriesModel.find({
+      parent: req.params._id,
+    })
+    if (subCategory) res.send(subCategory)
+    else
+      next(createError(404), `Sub category with id ${req.params.id} not found.`)
+  } catch (error) {
+    next(error)
+    console.log(error)
+  }
+})
