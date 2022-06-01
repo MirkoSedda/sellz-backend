@@ -47,8 +47,8 @@ productsRouter.get("/:slug", async (req, res, next) => {
   try {
     const product = await productsModel
       .findOne({ slug: req.params.slug })
-      .populate("Category")
-      // .populate("subCategories")
+      .populate("category")
+      .populate("subCategories")
       .sort([["createdAt", -1]])
     console.log(product)
     if (product) res.send(product)
@@ -69,12 +69,12 @@ productsRouter.put(
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const updatedProduct = await productsModel.findOneAndUpdate(
-        req.params.slug, // WHO
+      const updateProduct = await productsModel.findByIdAndUpdate(
+        req.body._id, // WHO
         req.body, // HOW
         { new: true, runValidators: true }
       )
-      if (updatedProduct) res.send(updatedProduct)
+      if (updateProduct) res.send(updateProduct)
       else
         next(
           createError(404, `Product with slug ${req.params.slug} not found!`)

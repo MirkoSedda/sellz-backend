@@ -97,14 +97,18 @@ categoriesRouter.delete(
   }
 )
 
-categoriesRouter.get("/subcategories/:_id", async (req, res, next) => {
+categoriesRouter.get("/subcategories/:slug", async (req, res, next) => {
   try {
+    console.log(req.params)
     const subCategory = await subCategoriesModel.find({
-      parent: req.params._id,
+      parent: req.params.slug,
     })
     if (subCategory) res.send(subCategory)
     else
-      next(createError(404), `Sub category with id ${req.params.id} not found.`)
+      next(
+        createError(404),
+        `Sub category with slug ${req.params.slug} not found.`
+      )
   } catch (error) {
     next(error)
     console.log(error)
