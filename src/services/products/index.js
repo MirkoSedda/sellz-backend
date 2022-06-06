@@ -8,19 +8,37 @@ import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const productsRouter = express.Router()
 
-productsRouter.get("/limit/:limit", async (req, res, next) => {
+productsRouter.get("/total-number-of-products", async (req, res, next) => {
   try {
-    const products = await productsModel
-      .find({})
-      .limit(parseInt(req.params.limit))
-      .populate("Category")
-      .populate("subCategories")
-      .sort([["createdAt", -1]])
-    if (products) res.send(products)
-    else next(createError(404), `Products not found.`)
+    await productsModel.estimatedDocumentCount(
+      {},
+      (err, totalNumberOfProducts) => res.send({ totalNumberOfProducts })
+    )
   } catch (error) {
     next(error)
-    console.log(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
+  }
+})
+
+productsRouter.post("/sort-order-limit-products", async (req, res, next) => {
+  try {
+    const { sort, order, page } = req.body
+    const currentPage = page || 1
+    const productsPerPage = 3
+    const skipPage = (currentPage - 1) * productsPerPage
+    const products = await productsModel
+      .find({})
+      .skip(skipPage)
+      .populate("category")
+      .populate("subCategories")
+      .sort([[sort, order]])
+      .limit(productsPerPage)
+    if (products) res.send(products)
+  } catch (error) {
+    next(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
   }
 })
 
