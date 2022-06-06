@@ -21,6 +21,22 @@ productsRouter.get("/total-number-of-products", async (req, res, next) => {
   }
 })
 
+productsRouter.get("/limit/:limit", async (req, res, next) => {
+  try {
+    const products = await productsModel
+      .find({})
+      .limit(parseInt(req.params.limit))
+      .populate("Category")
+      .populate("subCategories")
+      .sort([["createdAt", -1]])
+    if (products) res.send(products)
+    else next(createError(404), `Products not found.`)
+  } catch (error) {
+    next(error)
+    console.log(error)
+  }
+})
+
 productsRouter.post("/sort-order-limit-products", async (req, res, next) => {
   try {
     const { sort, order, page } = req.body
