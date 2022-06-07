@@ -1,33 +1,61 @@
 import express from "express"
 import createError from "http-errors"
 import productsModel from "./model.js"
+import usersModel from "../users/model.js"
+import slugify from "slugify"
 import q2m from "query-to-mongo"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
-const productsRouter = express.Router()
+export const productsRouter = express.Router()
 
-//PAGINATION IS BROKEN - TO FIX
-
-productsRouter.get("/", async (req, res, next) => {
+productsRouter.get("/total-number-of-products", async (req, res, next) => {
   try {
-    const mongoQuery = q2m(req.query)
-    const total = await productsModel.countDocuments(mongoQuery.criteria)
-    const products = await productsModel
-      .find(mongoQuery.criteria, mongoQuery.options.fields)
-      .sort(mongoQuery.options.sort) //Mongo will ALWAYS do SORT, SKIP, LIMIT no matter what!
-      .skip(mongoQuery.options.skip, 0)
-      .limit(mongoQuery.options.limit, 20)
-    res.send({
-      //PLS FIX ME IM BROKEN
-      links: mongoQuery.links(`http://localhost:3001/products`, total),
-      total,
-      //PLS FIX ME IM BROKEN
-      totalPages: Math.ceil(total / mongoQuery.options.limit),
-      products,
-    })
+    await productsModel.estimatedDocumentCount(
+      {},
+      (err, totalNumberOfProducts) => res.send({ totalNumberOfProducts })
+    )
   } catch (error) {
     next(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
+  }
+})
+
+productsRouter.get("/limit/:limit", async (req, res, next) => {
+  try {
+    const products = await productsModel
+      .find({})
+      .limit(parseInt(req.params.limit))
+      .populate("Category")
+      .populate("subCategories")
+      .sort([["createdAt", -1]])
+    if (products) res.send(products)
+    else next(createError(404), `Products not found.`)
+  } catch (error) {
+    next(error)
+    console.log(error)
+  }
+})
+
+productsRouter.post("/sort-order-limit-products", async (req, res, next) => {
+  try {
+    const { sort, order, page } = req.body
+    const currentPage = page || 1
+    const productsPerPage = 3
+    const skipPage = (currentPage - 1) * productsPerPage
+    const products = await productsModel
+      .find({})
+      .skip(skipPage)
+      .populate("category")
+      .populate("subCategories")
+      .sort([[sort, order]])
+      .limit(productsPerPage)
+    if (products) res.send(products)
+  } catch (error) {
+    next(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
   }
 })
 
@@ -37,24 +65,52 @@ productsRouter.post(
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
+      console.log(req.body)
+      req.body.slug = slugify(req.body.title)
       const newProduct = new productsModel(req.body)
-      const { _id } = await newProduct.save()
-      res.status(201).send({ _id })
+      await newProduct.save()
+      res.status(201).send(newProduct)
     } catch (error) {
       next(error)
-      console.log(error)
+      res.status(400).json(error.message)
+      console.log(error.message)
     }
   }
 )
 
-productsRouter.get("/:productId", async (req, res, next) => {
+productsRouter.get("/related/:productId", async (req, res, next) => {
   try {
     const product = await productsModel.findById(req.params.productId)
+    const relatedProducts = await productsModel
+      .find({
+        _id: { $ne: req.params.productId },
+        category: product.category,
+      })
+      .limit(3)
+      .populate("category")
+      .populate("subCategories")
+      .populate("postedBy", "name")
+    if (relatedProducts) res.send(relatedProducts)
+  } catch (error) {
+    next(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
+  }
+})
+
+productsRouter.get("/:slug", async (req, res, next) => {
+  try {
+    const product = await productsModel
+      .findOne({ slug: req.params.slug })
+      .populate("category")
+      .populate("subCategories")
+      .sort([["createdAt", -1]])
+    console.log(product)
     if (product) res.send(product)
     else
       next(
         createError(404),
-        `Product with the ID ${req.params.productId} is not found.`
+        `Product with the slug ${req.params.slug} is not found.`
       )
   } catch (error) {
     next(error)
@@ -63,20 +119,20 @@ productsRouter.get("/:productId", async (req, res, next) => {
 })
 
 productsRouter.put(
-  "/:productId",
+  "/:slug",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const updatedProduct = await productsModel.findByIdAndUpdate(
-        req.params.productId, // WHO
+      const updateProduct = await productsModel.findByIdAndUpdate(
+        req.body._id, // WHO
         req.body, // HOW
         { new: true, runValidators: true }
       )
-      if (updatedProduct) res.send(updatedProduct)
+      if (updateProduct) res.send(updateProduct)
       else
         next(
-          createError(404, `blog with id ${req.params.productId} not found!`)
+          createError(404, `Product with slug ${req.params.slug} not found!`)
         )
     } catch (error) {
       next(error)
@@ -85,18 +141,18 @@ productsRouter.put(
 )
 
 productsRouter.delete(
-  "/:productId",
+  "/:slug",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const deletedProducts = await productsModel.findByIdAndDelete(
-        req.params.productId
-      )
-      if (deletedProducts) res.status(204).send()
+      const deleteProduct = await productsModel.findOneAndRemove({
+        slug: req.params.slug,
+      })
+      if (deleteProduct) res.status(204).send("Product deleted successfully!")
       else
         next(
-          createError(404, `Product with id ${req.params.productId} not found!`)
+          createError(404, `Product with slug ${req.params.slug} wasnt found!`)
         )
     } catch (error) {
       next(error)
@@ -105,4 +161,53 @@ productsRouter.delete(
   }
 )
 
-export default productsRouter
+productsRouter.put(
+  "/rating/:userId/:productId",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const { star } = req.body
+      const product = await productsModel.findById(req.params.productId)
+      const user = await usersModel.findById(req.params.userId)
+
+      console.log(product)
+      console.log(user)
+      const existingRatingObject = product.ratings.find(
+        rating => rating.postedBy.toString() === user._id.toString()
+      )
+
+      if (existingRatingObject === undefined) {
+        const addRating = await productsModel.findByIdAndUpdate(
+          product._id,
+          {
+            $push: {
+              ratings: {
+                star,
+                postedBy: user._id,
+              },
+            },
+          },
+          { new: true }
+        )
+        if (addRating) res.send(addRating)
+      } else {
+        const updatedRating = await productsModel.updateOne(
+          {
+            ratings: {
+              $elemMatch: existingRatingObject,
+            },
+          },
+          {
+            $set: {
+              "ratings.$.star": star,
+            },
+          },
+          { new: true }
+        )
+        if (updatedRating) res.send(updatedRating)
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+)

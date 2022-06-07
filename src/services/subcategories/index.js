@@ -2,10 +2,11 @@ import express from "express"
 import slugify from "slugify"
 import createError from "http-errors"
 import SubCategoriesModel from "./model.js"
+import productsModel from "../products/model.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
-const subCategoriesRouter = express.Router()
+export const subCategoriesRouter = express.Router()
 
 subCategoriesRouter.post(
   "/",
@@ -44,7 +45,12 @@ subCategoriesRouter.get("/:slug", async (req, res, next) => {
     const subCategory = await SubCategoriesModel.findOne({
       slug: req.params.slug,
     })
-    if (subCategory) res.send(subCategory)
+    console.log(subCategory)
+    const products = await productsModel
+      .find({ subCategories: subCategory })
+      .populate("category")
+    console.log(products)
+    if (subCategory) res.send({ subCategory, products })
     else
       next(
         createError(404),
@@ -102,5 +108,3 @@ subCategoriesRouter.delete(
     }
   }
 )
-
-export default subCategoriesRouter

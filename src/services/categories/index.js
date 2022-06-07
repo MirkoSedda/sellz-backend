@@ -2,10 +2,12 @@ import express from "express"
 import slugify from "slugify"
 import createError from "http-errors"
 import categoriesModel from "./model.js"
+import productsModel from "../products/model.js"
+import subCategoriesModel from "../subcategories/model.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
-const categoriesRouter = express.Router()
+export const categoriesRouter = express.Router()
 
 categoriesRouter.post(
   "/",
@@ -29,7 +31,7 @@ categoriesRouter.post(
 
 categoriesRouter.get("/", async (req, res, next) => {
   try {
-    const categories = await categoriesModel.find()
+    const categories = await categoriesModel.find({}).sort({ createdAt: -1 })
     res.status(200).send(categories)
   } catch (error) {
     next(error)
@@ -39,7 +41,11 @@ categoriesRouter.get("/", async (req, res, next) => {
 categoriesRouter.get("/:slug", async (req, res, next) => {
   try {
     const category = await categoriesModel.findOne({ slug: req.params.slug })
-    if (category) res.send(category)
+    const products = await productsModel
+      .find({ category: category })
+      .populate("category")
+      .populate("posted by", "name")
+    if (category) res.send({ category, products })
     else
       next(
         createError(404),
@@ -96,4 +102,20 @@ categoriesRouter.delete(
   }
 )
 
-export default categoriesRouter
+categoriesRouter.get("/subcategories/:slug", async (req, res, next) => {
+  try {
+    console.log(req.params)
+    const subCategory = await subCategoriesModel.find({
+      parent: req.params.slug,
+    })
+    if (subCategory) res.send(subCategory)
+    else
+      next(
+        createError(404),
+        `Sub category with slug ${req.params.slug} not found.`
+      )
+  } catch (error) {
+    next(error)
+    console.log(error)
+  }
+})

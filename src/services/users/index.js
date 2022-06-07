@@ -6,7 +6,7 @@ import { generateAccessToken } from "../../auth/tools.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
-const usersRouter = express.Router()
+export const usersRouter = express.Router()
 
 usersRouter.get(
   "/",
@@ -180,4 +180,3 @@ usersRouter.delete(
   }
 )
 
-export default usersRouter

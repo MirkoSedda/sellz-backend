@@ -4,11 +4,12 @@ import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import passport from "passport"
 import googleStrategy from "./auth/OAuth.js"
-import usersRouter from "./services/users/index.js"
-import categoriesRouter from "./services/categories/index.js"
-import productsRouter from "./services/products/index.js"
-import commentsRouter from "./services/comments/index.js"
-import subCategoriesRouter from "./services/subcategories/index.js"
+import { usersRouter } from "./services/users/index.js"
+import { categoriesRouter } from "./services/categories/index.js"
+import { productsRouter } from "./services/products/index.js"
+import { commentsRouter } from "./services/comments/index.js"
+import { subCategoriesRouter } from "./services/subcategories/index.js"
+import { cloudinaryRouter } from "./services/cloudinary/index.js"
 import morgan from "morgan"
 import {
   badRequestHandler,
@@ -36,6 +37,7 @@ server.use("/users", usersRouter)
 server.use("/categories", categoriesRouter)
 server.use("/subcategories", subCategoriesRouter)
 server.use("/products", [productsRouter, commentsRouter])
+server.use("/cloudinary", cloudinaryRouter)
 
 // ***************************************** ERROR HANDLERS ***********************************
 

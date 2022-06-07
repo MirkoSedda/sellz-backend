@@ -2,9 +2,7 @@ import express from "express"
 import createError from "http-errors"
 import productsModel from "../products/model.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
-const commentsRouter = express.Router()
-
-//ok
+export const commentsRouter = express.Router()
 
 commentsRouter.post(
   "/:productId/comments",
@@ -160,4 +158,3 @@ commentsRouter.delete(
   }
 )
 
-export default commentsRouter
