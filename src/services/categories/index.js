@@ -2,6 +2,7 @@ import express from "express"
 import slugify from "slugify"
 import createError from "http-errors"
 import categoriesModel from "./model.js"
+import productsModel from "../products/model.js"
 import subCategoriesModel from "../subcategories/model.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
@@ -40,7 +41,11 @@ categoriesRouter.get("/", async (req, res, next) => {
 categoriesRouter.get("/:slug", async (req, res, next) => {
   try {
     const category = await categoriesModel.findOne({ slug: req.params.slug })
-    if (category) res.send(category)
+    const products = await productsModel
+      .find({ category: category })
+      .populate("category")
+      .populate("posted by", "name")
+    if (category) res.send({ category, products })
     else
       next(
         createError(404),

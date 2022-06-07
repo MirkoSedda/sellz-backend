@@ -1,6 +1,7 @@
 import express from "express"
 import createError from "http-errors"
 import productsModel from "./model.js"
+import usersModel from "../users/model.js"
 import slugify from "slugify"
 import q2m from "query-to-mongo"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
@@ -77,6 +78,26 @@ productsRouter.post(
   }
 )
 
+productsRouter.get("/related/:productId", async (req, res, next) => {
+  try {
+    const product = await productsModel.findById(req.params.productId)
+    const relatedProducts = await productsModel
+      .find({
+        _id: { $ne: req.params.productId },
+        category: product.category,
+      })
+      .limit(3)
+      .populate("category")
+      .populate("subCategories")
+      .populate("postedBy", "name")
+    if (relatedProducts) res.send(relatedProducts)
+  } catch (error) {
+    next(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
+  }
+})
+
 productsRouter.get("/:slug", async (req, res, next) => {
   try {
     const product = await productsModel
@@ -136,6 +157,57 @@ productsRouter.delete(
     } catch (error) {
       next(error)
       console.log(error)
+    }
+  }
+)
+
+productsRouter.put(
+  "/rating/:userId/:productId",
+  JWTAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const { star } = req.body
+      const product = await productsModel.findById(req.params.productId)
+      const user = await usersModel.findById(req.params.userId)
+
+      console.log(product)
+      console.log(user)
+      const existingRatingObject = product.ratings.find(
+        rating => rating.postedBy.toString() === user._id.toString()
+      )
+
+      if (existingRatingObject === undefined) {
+        const addRating = await productsModel.findByIdAndUpdate(
+          product._id,
+          {
+            $push: {
+              ratings: {
+                star,
+                postedBy: user._id,
+              },
+            },
+          },
+          { new: true }
+        )
+        if (addRating) res.send(addRating)
+      } else {
+        const updatedRating = await productsModel.updateOne(
+          {
+            ratings: {
+              $elemMatch: existingRatingObject,
+            },
+          },
+          {
+            $set: {
+              "ratings.$.star": star,
+            },
+          },
+          { new: true }
+        )
+        if (updatedRating) res.send(updatedRating)
+      }
+    } catch (error) {
+      next(error)
     }
   }
 )

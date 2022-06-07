@@ -60,15 +60,15 @@ const ProductSchema = new Schema(
       type: String,
       enum: ["Apple", "Samsung", "Microsoft", "Lenovo", "Asus"],
     },
-    // rating: [
-    //   {
-    //     star: Number,
-    //     postedBy: {
-    //       type: Schema.Types.ObjectId,
-    //       ref: "User",
-    //     },
-    //   },
-    // ],
+    ratings: [
+      {
+        star: Number,
+        postedBy: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+      },
+    ],
   },
   {
     timestamps: true,
