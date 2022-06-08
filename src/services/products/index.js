@@ -3,7 +3,16 @@ import createError from "http-errors"
 import productsModel from "./model.js"
 import usersModel from "../users/model.js"
 import slugify from "slugify"
-import q2m from "query-to-mongo"
+import {
+  handleQuery,
+  handlePrice,
+  handleCategory,
+  handleRating,
+  handleSubCategory,
+  handleShipping,
+  handleColor,
+  handleBrand,
+} from "./search&filter.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
@@ -38,7 +47,7 @@ productsRouter.get("/limit/:limit", async (req, res, next) => {
   }
 })
 
-productsRouter.post("/sort-order-limit-products", async (req, res, next) => {
+productsRouter.post("/sort-order-page", async (req, res, next) => {
   try {
     const { sort, order, page } = req.body
     const currentPage = page || 1
@@ -56,6 +65,81 @@ productsRouter.post("/sort-order-limit-products", async (req, res, next) => {
     next(error)
     res.status(400).json(error.message)
     console.log(error.message)
+  }
+})
+
+productsRouter.get("/related/:productId", async (req, res, next) => {
+  try {
+    const product = await productsModel.findById(req.params.productId)
+    const relatedProducts = await productsModel
+      .find({
+        _id: { $ne: req.params.productId },
+        category: product.category,
+      })
+      .limit(3)
+      .populate("category")
+      .populate("subCategories")
+      .populate("postedBy", "name")
+    if (relatedProducts) res.send(relatedProducts)
+  } catch (error) {
+    next(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
+  }
+})
+
+productsRouter.post("/search/filters", async (req, res, next) => {
+  try {
+    const {
+      query,
+      price,
+      category,
+      stars,
+      subCategory,
+      shipping,
+      color,
+      brand,
+    } = req.body
+
+    if (query) {
+      await handleQuery(req, res, next, query)
+    }
+    if (price !== undefined) {
+      await handlePrice(req, res, next, price)
+    }
+    if (category !== undefined) {
+      await handleCategory(req, res, next, category)
+    }
+    if (stars !== undefined) {
+      await handleRating(req, res, next, stars)
+    }
+    if (subCategory !== undefined) {
+      await handleSubCategory(req, res, next, subCategory)
+    }
+    if (shipping !== undefined) {
+      await handleShipping(req, res, next, shipping)
+    }
+    if (color !== undefined) {
+      await handleColor(req, res, next, color)
+    }
+    if (brand !== undefined) {
+      await handleBrand(req, res, next, brand)
+    }
+  } catch (error) {
+    next(error)
+    res.status(400).json(error.message)
+    console.log(error.message)
+  }
+})
+
+productsRouter.get("/", async (req, res, next) => {
+  try {
+    const products = await productsModel.find({})
+    if (products) res.send(products)
+    else next(createError(404), `Products not found.`)
+  } catch (error) {
+    next(error)
+    console.log(error)
   }
 })
 
@@ -77,26 +161,6 @@ productsRouter.post(
     }
   }
 )
-
-productsRouter.get("/related/:productId", async (req, res, next) => {
-  try {
-    const product = await productsModel.findById(req.params.productId)
-    const relatedProducts = await productsModel
-      .find({
-        _id: { $ne: req.params.productId },
-        category: product.category,
-      })
-      .limit(3)
-      .populate("category")
-      .populate("subCategories")
-      .populate("postedBy", "name")
-    if (relatedProducts) res.send(relatedProducts)
-  } catch (error) {
-    next(error)
-    res.status(400).json(error.message)
-    console.log(error.message)
-  }
-})
 
 productsRouter.get("/:slug", async (req, res, next) => {
   try {
