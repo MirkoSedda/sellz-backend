@@ -88,7 +88,7 @@ productsRouter.get("/related/:productId", async (req, res, next) => {
   }
 })
 
-productsRouter.post("/search/filters", async (req, res, next) => {
+productsRouter.post("/search&filters", async (req, res, next) => {
   try {
     const {
       query,

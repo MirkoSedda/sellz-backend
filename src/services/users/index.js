@@ -2,11 +2,155 @@ import express from "express"
 import passport from "passport"
 import createError from "http-errors"
 import usersModel from "./model.js"
+import cartModel from "../cart/model.js"
+import productsModel from "../products/model.js"
 import { generateAccessToken } from "../../auth/tools.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const usersRouter = express.Router()
+
+usersRouter.post(
+  "/cart/:userId",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const { cart } = req.body
+      const { userId } = req.params.userId
+      console.log("index.js ~ line 20 ~ cart", cart)
+
+      const previousUserCart = await cartModel.findOne({ orderdBy: userId })
+
+      if (previousUserCart) {
+        previousUserCart.remove()
+        console.log("removed old cart")
+      }
+
+      const products = []
+
+      for (let i = 0; i < cart.length; i++) {
+        let object = {}
+        object.product = cart[i]._id
+        object.count = cart[i].count
+        object.color = cart[i].color
+        let productFromDb = await productsModel
+          .findById(cart[i]._id)
+          .select("price")
+        object.price = productFromDb.price
+
+        products.push(object)
+        // console.log("🚀 ~ file: index.js ~ line 31 ~ products", products)
+      }
+
+      let cartTotal = 0
+
+      for (let i = 0; i < products.length; i++) {
+        cartTotal = cartTotal + products[i].price * products[i].count
+      }
+      // console.log("🚀 ~file: index.js ~line 47 ~cartTotal", cartTotal)
+
+      let newCart = await new cartModel({
+        products,
+        cartTotal,
+        orderdBy: userId,
+        // totalAfterDiscount,
+      })
+      await newCart.save()
+      // console.log("🚀 ~ file: index.js ~ line 59 ~ newCart", newCart)
+      if (newCart) res.status(201).send(newCart)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+usersRouter.get(
+  "/cart/:userId",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.params.userId
+
+      const cart = await cartModel
+        .findOne({ orderdBy: userId })
+        .populate("products.product")
+      console.log("🚀 ~ file: index.js ~ line 81 ~ cart", cart)
+
+      res.status(201).send(cart)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+usersRouter.delete(
+  "/cart/:userId",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.params.userId
+
+      const cart = await cartModel.findOneAndRemove({ orderdBy: userId })
+
+      res.status(201).send(cart)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+usersRouter.post(
+  "/address",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const userAddress = await usersModel.findByIdAndUpdate(
+        req.user._id,
+        req.body,
+        {
+          new: true,
+        }
+      )
+      if (userAddress) {
+        res.send(userAddress)
+      } else {
+        next(401, `User with id ${req.user._id} not found!`)
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+// usersRouter.post(
+//   "/address/:userId",
+//   JWTAuthMiddleware,
+//   adminOnlyMiddleware,
+//   async (req, res, next) => {
+//     try {
+//       const { userId } = req.params.userId
+//       const { address } = req.body
+//       console.log("🚀 ~ file: index.js ~ line 112 ~ userId", userId)
+//       console.log("🚀 ~ file: index.js ~ line 114 ~ address", address)
+//       const user = await usersModel.findByIdAndUpdate(
+//         { user: userId },
+//         { address: address }
+//       )
+
+//       console.log(
+//         "🚀 ~ file: index.js ~ line 111 ~ usersRouter.post ~ user",
+//         user
+//       )
+//       await user.save()
+//       res.status(201).send(user)
+//     } catch (error) {
+//       next(error)
+//     }
+//   }
+// )
 
 usersRouter.get(
   "/",
@@ -179,4 +323,3 @@ usersRouter.delete(
     }
   }
 )
-
