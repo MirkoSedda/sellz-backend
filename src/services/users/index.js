@@ -4,6 +4,7 @@ import createError from "http-errors"
 import usersModel from "./model.js"
 import cartModel from "../cart/model.js"
 import productsModel from "../products/model.js"
+import couponsModel from "../coupons/model.js"
 import { generateAccessToken } from "../../auth/tools.js"
 import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
@@ -11,20 +12,18 @@ import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 export const usersRouter = express.Router()
 
 usersRouter.post(
-  "/cart/:userId",
+  "/cart",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
       const { cart } = req.body
-      const { userId } = req.params.userId
-      console.log("index.js ~ line 20 ~ cart", cart)
+      const { _id } = req.user
 
-      const previousUserCart = await cartModel.findOne({ orderdBy: userId })
+      const previousUserCart = await cartModel.findOne({ orderdBy: _id })
 
       if (previousUserCart) {
         previousUserCart.remove()
-        console.log("removed old cart")
       }
 
       const products = []
@@ -50,10 +49,10 @@ usersRouter.post(
       }
       // console.log("🚀 ~file: index.js ~line 47 ~cartTotal", cartTotal)
 
-      let newCart = await new cartModel({
+      const newCart = await new cartModel({
         products,
         cartTotal,
-        orderdBy: userId,
+        orderdBy: _id,
         // totalAfterDiscount,
       })
       await newCart.save()
@@ -66,15 +65,15 @@ usersRouter.post(
 )
 
 usersRouter.get(
-  "/cart/:userId",
+  "/cart",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const { userId } = req.params.userId
+      const { _id } = req.user
 
       const cart = await cartModel
-        .findOne({ orderdBy: userId })
+        .findOne({ orderdBy: _id })
         .populate("products.product")
       console.log("🚀 ~ file: index.js ~ line 81 ~ cart", cart)
 
@@ -86,14 +85,14 @@ usersRouter.get(
 )
 
 usersRouter.delete(
-  "/cart/:userId",
+  "/cart",
   JWTAuthMiddleware,
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const { userId } = req.params.userId
+      const { _id } = req.user
 
-      const cart = await cartModel.findOneAndRemove({ orderdBy: userId })
+      const cart = await cartModel.findOneAndRemove({ orderdBy: _id })
 
       res.status(201).send(cart)
     } catch (error) {
@@ -102,6 +101,58 @@ usersRouter.delete(
   }
 )
 
+usersRouter.post(
+  "/cart/coupon",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const { coupon } = req.body
+      console.log("🚀 ~ file: index.js ~ line 111 ~ coupon", coupon)
+
+      const couponFromDb = await couponsModel.findOne({ name: coupon })
+      console.log("🚀 ~ file: index.js ~ line 114 ~ couponFromDb", couponFromDb)
+
+      const { _id } = await usersModel.findById(req.user._id)
+      console.log("🚀 ~ file: index.js ~ line 117 ~ _id", _id)
+
+      const fullPriceCart = await cartModel.findOne({ orderdBy: _id })
+      console.log(
+        "🚀 ~ file: index.js ~ line 122 ~ fullPriceCart",
+        fullPriceCart
+      )
+
+      const cartTotal = fullPriceCart.cartTotal
+      console.log("🚀 ~ file: index.js ~ line 126 ~ cartTotal", cartTotal)
+
+      const totalAfterDiscount = (
+        cartTotal -
+        (cartTotal * couponFromDb.discount) / 100
+      ).toFixed(2)
+      console.log(
+        "🚀 ~ file: index.js ~ line 132 ~ totalAfterDiscount",
+        totalAfterDiscount
+      )
+
+      const cart = await cartModel.findOneAndUpdate(
+        { orderdBy: _id },
+        { totalAfterDiscount },
+        { new: true }
+      )
+      console.log("🚀 ~ file: index.js ~ line 139 ~ cart", cart)
+
+      if (cart) {
+        res.send(cart)
+      } else {
+        next(401, `Something went wrong !`)
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+// TODO adopt the same req.user._id without the user in params
 usersRouter.post(
   "/address",
   JWTAuthMiddleware,
@@ -120,46 +171,6 @@ usersRouter.post(
       } else {
         next(401, `User with id ${req.user._id} not found!`)
       }
-    } catch (error) {
-      next(error)
-    }
-  }
-)
-// usersRouter.post(
-//   "/address/:userId",
-//   JWTAuthMiddleware,
-//   adminOnlyMiddleware,
-//   async (req, res, next) => {
-//     try {
-//       const { userId } = req.params.userId
-//       const { address } = req.body
-//       console.log("🚀 ~ file: index.js ~ line 112 ~ userId", userId)
-//       console.log("🚀 ~ file: index.js ~ line 114 ~ address", address)
-//       const user = await usersModel.findByIdAndUpdate(
-//         { user: userId },
-//         { address: address }
-//       )
-
-//       console.log(
-//         "🚀 ~ file: index.js ~ line 111 ~ usersRouter.post ~ user",
-//         user
-//       )
-//       await user.save()
-//       res.status(201).send(user)
-//     } catch (error) {
-//       next(error)
-//     }
-//   }
-// )
-
-usersRouter.get(
-  "/",
-  JWTAuthMiddleware,
-  adminOnlyMiddleware,
-  async (req, res, next) => {
-    try {
-      const users = await usersModel.find()
-      res.send(users)
     } catch (error) {
       next(error)
     }
@@ -260,6 +271,20 @@ usersRouter.get(
           `${process.env.FE_URL}/profile?accessToken=${req.user.token}`
         )
       }
+    } catch (error) {
+      next(error)
+    }
+  }
+)
+
+usersRouter.get(
+  "/",
+  JWTAuthMiddleware,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const users = await usersModel.find()
+      res.send(users)
     } catch (error) {
       next(error)
     }

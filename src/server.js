@@ -10,6 +10,7 @@ import { productsRouter } from "./services/products/index.js"
 import { commentsRouter } from "./services/comments/index.js"
 import { subCategoriesRouter } from "./services/subcategories/index.js"
 import { cloudinaryRouter } from "./services/cloudinary/index.js"
+import { couponsRouter } from "./services/coupons/index.js"
 import morgan from "morgan"
 import {
   badRequestHandler,
@@ -38,6 +39,7 @@ server.use("/categories", categoriesRouter)
 server.use("/subcategories", subCategoriesRouter)
 server.use("/products", [productsRouter, commentsRouter])
 server.use("/cloudinary", cloudinaryRouter)
+server.use("/coupons", couponsRouter)
 
 // ***************************************** ERROR HANDLERS ***********************************
 
