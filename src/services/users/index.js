@@ -64,10 +64,8 @@ usersRouter.get("/cart", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const { _id } = req.user
 
-    const cart = await cartModel
-      .findOne({ orderedBy: _id })
-      .populate("products.product")
-    console.log("🚀 ~ file: index.js ~ line 81 ~ cart", cart)
+    const cart = await cartModel.findOne({}).populate("products.product")
+    console.log("🚀 ~ file: index.js ~ line 70 ~ usersRouter.get ~ cart", cart)
 
     res.status(201).send(cart)
   } catch (error) {
