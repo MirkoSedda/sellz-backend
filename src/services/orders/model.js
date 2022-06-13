@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 
 const { Schema, model } = mongoose
 
-const CartSchema = new Schema(
+const orderSchema = new Schema(
   {
     products: [
       {
@@ -12,19 +12,26 @@ const CartSchema = new Schema(
         },
         count: Number,
         color: String,
-        price: Number,
       },
     ],
-    cartTotal: Number,
-    totalAfterDiscount: Number,
+    paymentIntent: {},
+    orderStatus: {
+      type: String,
+      default: "Not Processed",
+      enum: [
+        "Not Processed",
+        "Processing",
+        "Dispatched",
+        "Cancelled",
+        "Completed",
+      ],
+    },
     orderedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 )
 
-export default model("Cart", CartSchema)
+export default model("Order", orderSchema)
