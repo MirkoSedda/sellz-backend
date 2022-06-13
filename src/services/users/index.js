@@ -64,8 +64,10 @@ usersRouter.get("/cart", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const { _id } = req.user
 
-    const cart = await cartModel.findOne({}).populate("products.product")
-    console.log("🚀 ~ file: index.js ~ line 70 ~ usersRouter.get ~ cart", cart)
+    let cart = await cartModel
+      .findOne({ orderedBy: _id })
+      .populate("products.product")
+    console.log("🚀 ~ file: index.js ~ line 71 ~ usersRouter.get ~ cart", cart)
 
     res.status(201).send(cart)
   } catch (error) {
@@ -142,6 +144,17 @@ usersRouter.post("/order", JWTAuthMiddleware, async (req, res, next) => {
       orderedBy: _id,
     }).save()
 
+    const bulkUpdate = products.map(item => {
+      return {
+        updateOne: {
+          filter: { _id: item.product._id },
+          update: { $inc: { quantity: -item.count, sold: +item.count } },
+        },
+      }
+    })
+
+    await productsModel.bulkWrite(bulkUpdate, {})
+
     console.log("🚀 ~ file: index.js ~ line 173 ~ newOrder", newOrder)
 
     if (newOrder) {
@@ -149,6 +162,20 @@ usersRouter.post("/order", JWTAuthMiddleware, async (req, res, next) => {
     } else {
       next(401, `Failed to create the order`)
     }
+  } catch (error) {
+    next(error)
+  }
+})
+
+usersRouter.get("/orders", JWTAuthMiddleware, async (req, res, next) => {
+  try {
+    const { _id } = req.user
+
+    const orders = await orderModel
+      .find({ orderedBy: _id })
+      .populate("products.product")
+
+    if (orders) res.send(orders)
   } catch (error) {
     next(error)
   }
