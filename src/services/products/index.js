@@ -36,7 +36,7 @@ productsRouter.get("/limit/:limit", async (req, res, next) => {
     const products = await productsModel
       .find({})
       .limit(parseInt(req.params.limit))
-      .populate("Category")
+      .populate("category")
       .populate("subCategories")
       .sort([["createdAt", -1]])
     if (products) res.send(products)
@@ -79,7 +79,7 @@ productsRouter.get("/related/:productId", async (req, res, next) => {
       .limit(3)
       .populate("category")
       .populate("subCategories")
-      .populate("postedBy", "name")
+      .populate("postedBy", "_id name")
     if (relatedProducts) res.send(relatedProducts)
   } catch (error) {
     next(error)

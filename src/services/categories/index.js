@@ -44,7 +44,7 @@ categoriesRouter.get("/:slug", async (req, res, next) => {
     const products = await productsModel
       .find({ category: category })
       .populate("category")
-      .populate("posted by", "name")
+      .populate("posteBy", "_id name")
     if (category) res.send({ category, products })
     else
       next(

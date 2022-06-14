@@ -40,10 +40,11 @@ stripeRouter.post(
       let finalAmount = 0
 
       if (couponApplied && totalAfterDiscount) {
-        finalAmount = totalAfterDiscount * 100
+        finalAmount = (totalAfterDiscount * 100).toFixed(0)
       } else {
-        finalAmount = cartTotal * 100
+        finalAmount = (cartTotal * 100).toFixed(0)
       }
+      console.log("🚀 ~ file: index.js ~ line 46 ~ finalAmount", finalAmount)
 
       // create payment intent with order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
