@@ -8,7 +8,7 @@ import productsModel from "../products/model.js"
 import couponsModel from "../coupons/model.js"
 import orderModel from "../orders/model.js"
 import { generateAccessToken } from "../../auth/tools.js"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const usersRouter = express.Router()
@@ -263,24 +263,24 @@ usersRouter.post("/cash-order", JWTAuthMiddleware, async (req, res, next) => {
 
 usersRouter.post("/wishlist", JWTAuthMiddleware, async (req, res, next) => {
   try {
+    const { _id } = req.user
     const { productId } = req.body
 
-    const { _id } = req.user
-    console.log(
-      "🚀 ~ file: index.js ~ line 269 ~ usersRouter.post ~ req.user",
-      req.user
+    const wishlist = await usersModel.findByIdAndUpdate(
+      _id,
+      {
+        $addToSet: { wishlist: productId },
+      },
+      { new: true }
     )
 
-    const user = await usersModel.findOneAndUpdate(_id, {
-      $addToSet: { wishlist: productId },
-    })
     console.log(
-      "🚀 ~ file: index.js ~ line 275 ~ usersRouter.post ~ user",
-      user
+      "🚀 ~ file: index.js ~ line 275 ~ usersRouter.post ~ wishlist",
+      wishlist
     )
 
-    if (user) {
-      res.send(user)
+    if (wishlist) {
+      res.send(wishlist)
     } else {
       next(401, `User with id ${req.user._id} not found!`)
     }

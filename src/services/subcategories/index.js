@@ -3,7 +3,7 @@ import slugify from "slugify"
 import createError from "http-errors"
 import SubCategoriesModel from "./model.js"
 import productsModel from "../products/model.js"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const subCategoriesRouter = express.Router()
