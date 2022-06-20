@@ -47,19 +47,14 @@ productsRouter.get("/limit/:limit", async (req, res, next) => {
   }
 })
 
-productsRouter.post("/sort-order-page", async (req, res, next) => {
+productsRouter.post("/sort-order", async (req, res, next) => {
   try {
-    const { sort, order, page } = req.body
-    const currentPage = page || 1
-    const productsPerPage = 3
-    const skipPage = (currentPage - 1) * productsPerPage
+    const { sort, order } = req.body
     const products = await productsModel
       .find({})
-      .skip(skipPage)
       .populate("category")
       .populate("subCategories")
       .sort([[sort, order]])
-      .limit(productsPerPage)
     console.log(
       "🚀 ~ file: index.js ~ line 63 ~ productsRouter.post ~ products",
       products
