@@ -40,14 +40,14 @@ app.use(morgan("tiny"))
 
 // ****************************************** ENDPOINTS ***************************************
 
-app.use("/api/users", usersRouter)
-app.use("/api/categories", categoriesRouter)
-app.use("/api/subcategories", subCategoriesRouter)
-app.use("/api/products", productsRouter)
-app.use("/api/cloudinary", cloudinaryRouter)
-app.use("/api/coupons", couponsRouter)
-app.use("/api/stripe", stripeRouter)
-app.use("/api/admins", adminsRouter)
+app.use("/users", usersRouter)
+app.use("/categories", categoriesRouter)
+app.use("/subcategories", subCategoriesRouter)
+app.use("/products", productsRouter)
+app.use("/cloudinary", cloudinaryRouter)
+app.use("/coupons", couponsRouter)
+app.use("/stripe", stripeRouter)
+app.use("/admins", adminsRouter)
 
 // ***************************************** ERROR HANDLERS ***********************************
 
