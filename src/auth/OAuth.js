@@ -11,7 +11,7 @@ const googleStrategy = new GoogleStrategy(
   },
   async (accessToken, refreshToken, profile, passportNext) => {
     try {
-      // this callback is executed when Google sends us a successfull response back (through the redirect url)
+      // this callback is executed when Google sends us a successful response back (through the redirect url)
       // here we are receiving some informations about the author from Google (scopes --> profile, email)
       console.log("PROFILE: ", profile)
 

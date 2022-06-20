@@ -13,7 +13,7 @@ import {
   handleColor,
   handleBrand,
 } from "./search&filter.js"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const productsRouter = express.Router()
@@ -60,6 +60,10 @@ productsRouter.post("/sort-order-page", async (req, res, next) => {
       .populate("subCategories")
       .sort([[sort, order]])
       .limit(productsPerPage)
+    console.log(
+      "🚀 ~ file: index.js ~ line 63 ~ productsRouter.post ~ products",
+      products
+    )
     if (products) res.send(products)
   } catch (error) {
     next(error)
