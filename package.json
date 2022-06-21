@@ -2,10 +2,14 @@
   "name": "sellz-backend",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "16.13.2"
+  },
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon -r dotenv/config src/server.js"
+    "dev": "nodemon -r dotenv/config ./src/server.js",
+    "start": "node ./src/server.js"
   },
   "keywords": [],
   "author": "",
