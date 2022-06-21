@@ -4,7 +4,7 @@ import createError from "http-errors"
 import categoriesModel from "./model.js"
 import productsModel from "../products/model.js"
 import subCategoriesModel from "../subcategories/model.js"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const categoriesRouter = express.Router()

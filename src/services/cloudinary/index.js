@@ -1,5 +1,5 @@
 import express from "express"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 import cloudinary from "cloudinary"
 

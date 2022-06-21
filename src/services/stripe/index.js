@@ -1,5 +1,5 @@
 import express from "express"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import UsersModel from "../users/model.js"
 import CartModel from "../cart/model.js"
 import createError from "http-errors"

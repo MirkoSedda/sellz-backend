@@ -12,7 +12,7 @@ const UserSchema = new Schema(
     address: { type: String },
     role: { type: String, enum: ["User", "Admin"], default: "User" },
     cart: { type: Array, default: [] },
-    wishlist: { type: Schema.Types.ObjectId, ref: "Product" },
+    wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
   },
   {
     timestamps: true,

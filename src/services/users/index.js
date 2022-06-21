@@ -8,7 +8,7 @@ import productsModel from "../products/model.js"
 import couponsModel from "../coupons/model.js"
 import orderModel from "../orders/model.js"
 import { generateAccessToken } from "../../auth/tools.js"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const usersRouter = express.Router()
@@ -251,8 +251,6 @@ usersRouter.post("/cash-order", JWTAuthMiddleware, async (req, res, next) => {
 
     await productsModel.bulkWrite(bulkUpdate, {})
 
-    console.log("🚀 ~ file: index.js ~ line 173 ~ newOrder", newOrder)
-
     if (newOrder) {
       res.send({ ok: true })
     } else {
@@ -265,20 +263,24 @@ usersRouter.post("/cash-order", JWTAuthMiddleware, async (req, res, next) => {
 
 usersRouter.post("/wishlist", JWTAuthMiddleware, async (req, res, next) => {
   try {
+    const { _id } = req.user
     const { productId } = req.body
 
-    const { _id } = req.user
-
-    const user = await usersModel.findOneAndUpdate(_id, {
-      $addToSet: { wishlist: productId },
-    })
-    console.log(
-      "🚀 ~ file: index.js ~ line 213 ~ usersRouter.post ~ user",
-      user
+    const wishlist = await usersModel.findByIdAndUpdate(
+      _id,
+      {
+        $addToSet: { wishlist: productId },
+      },
+      { new: true }
     )
 
-    if (user) {
-      res.send(user)
+    console.log(
+      "🚀 ~ file: index.js ~ line 275 ~ usersRouter.post ~ wishlist",
+      wishlist
+    )
+
+    if (wishlist) {
+      res.send(wishlist)
     } else {
       next(401, `User with id ${req.user._id} not found!`)
     }
@@ -294,9 +296,9 @@ usersRouter.get("/wishlist", JWTAuthMiddleware, async (req, res, next) => {
     const wishlist = await usersModel
       .findById(_id)
       .select("wishlist")
-      .populate("products.product")
+      .populate({ path: "wishlist", populate: { path: "product" } })
     console.log(
-      "🚀 ~ file: index.js ~ line 232 ~ usersRouter.get ~ wishlist",
+      "🚀 ~ file: index.js ~ line 298 ~ usersRouter.get ~ wishlist",
       wishlist
     )
 
@@ -315,12 +317,12 @@ usersRouter.put(
 
       const { _id } = req.user
 
-      const user = await User.findOneAndUpdate(_id, {
+      const wishlist = await usersModel.findOneAndUpdate(_id, {
         $pull: { wishlist: productId },
       })
 
-      if (user) {
-        res.send(user)
+      if (wishlist) {
+        res.send(wishlist)
       } else {
         next(401, `User with id ${req.user._id} not found!`)
       }

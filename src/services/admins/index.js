@@ -1,6 +1,6 @@
 import express from "express"
 import orderModel from "../orders/model.js"
-import { JWTAuthMiddleware } from "../../auth/JWTmiddleware.js"
+import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
 import { adminOnlyMiddleware } from "../../auth/adminOnlyMiddleware.js"
 
 export const adminsRouter = express.Router()

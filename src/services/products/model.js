@@ -54,7 +54,7 @@ const ProductSchema = new Schema(
     },
     color: {
       type: String,
-      enum: ["Red", "Green", "Blue", "Black", "White"],
+      enum: ["Black", "Silver", "Gold", "White", "Red", "Blue", "Green"],
     },
     brand: {
       type: String,
