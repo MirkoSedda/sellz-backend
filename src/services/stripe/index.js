@@ -16,10 +16,6 @@ stripeRouter.post(
     try {
       console.log(req.body)
       const { couponApplied } = req.body
-      console.log(
-        "🚀 ~ file: index.js ~ line 11 ~ createPaymentIntent ~ req.body",
-        req.body
-      )
 
       const { _id } = req.user
 
@@ -28,14 +24,6 @@ stripeRouter.post(
       const { cartTotal, totalAfterDiscount } = await CartModel.findOne({
         orderedBy: _id,
       })
-      console.log(
-        "🚀 ~ file: index.js ~ line 20 ~ createPaymentIntent ~ totalAfterDiscount",
-        totalAfterDiscount
-      )
-      console.log(
-        "🚀 ~ file: index.js ~ line 20 ~ createPaymentIntent ~ cartTotal",
-        cartTotal
-      )
 
       let finalAmount = 0
 
@@ -44,13 +32,16 @@ stripeRouter.post(
       } else {
         finalAmount = (cartTotal * 100).toFixed(0)
       }
-      console.log("🚀 ~ file: index.js ~ line 46 ~ finalAmount", finalAmount)
 
       // create payment intent with order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
         amount: finalAmount,
         currency: "eur",
       })
+      console.log(
+        "🚀 ~ file: index.js ~ line 41 ~ paymentIntent",
+        paymentIntent
+      )
 
       res.send({
         clientSecret: paymentIntent.client_secret,
