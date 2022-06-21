@@ -1,8 +1,6 @@
 import express from "express"
 import { JWTAuthMiddleware } from "../../auth/JWTAuthMiddleware.js"
-import UsersModel from "../users/model.js"
 import CartModel from "../cart/model.js"
-import createError from "http-errors"
 import Stripe from "stripe"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET)
@@ -16,6 +14,10 @@ stripeRouter.post(
     try {
       console.log(req.body)
       const { couponApplied } = req.body
+      console.log(
+        "🚀 ~ file: index.js ~ line 17 ~ couponApplied",
+        couponApplied
+      )
 
       const { _id } = req.user
 
@@ -24,6 +26,11 @@ stripeRouter.post(
       const { cartTotal, totalAfterDiscount } = await CartModel.findOne({
         orderedBy: _id,
       })
+      console.log(
+        "🚀 ~ file: index.js ~ line 26 ~ totalAfterDiscount",
+        totalAfterDiscount
+      )
+      console.log("🚀 ~ file: index.js ~ line 26 ~ cartTotal", cartTotal)
 
       let finalAmount = 0
 
