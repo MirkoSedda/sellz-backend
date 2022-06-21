@@ -134,16 +134,23 @@ usersRouter.post("/cart/coupon", JWTAuthMiddleware, async (req, res, next) => {
 usersRouter.post("/order", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const { paymentIntent } = req.body.stripeResponse
+    console.log(
+      "🚀 ~ file: index.js ~ line 137 ~ usersRouter.post ~ paymentIntent",
+      paymentIntent
+    )
 
     const { _id } = req.user
+    console.log("🚀 ~ file: index.js ~ line 140 ~ _id", _id)
 
     const { products } = await cartModel.findOne({ orderedBy: _id })
+    console.log("🚀 ~ file: index.js ~ line 143 ~ products", products)
 
     const newOrder = await new orderModel({
       products,
       paymentIntent,
       orderedBy: _id,
     }).save()
+    console.log("🚀 ~ file: index.js ~ line 150 ~ newOrder", newOrder)
 
     const bulkUpdate = products.map(item => {
       return {
@@ -155,8 +162,6 @@ usersRouter.post("/order", JWTAuthMiddleware, async (req, res, next) => {
     })
 
     await productsModel.bulkWrite(bulkUpdate, {})
-
-    console.log("🚀 ~ file: index.js ~ line 173 ~ newOrder", newOrder)
 
     if (newOrder) {
       res.send({ ok: true })
