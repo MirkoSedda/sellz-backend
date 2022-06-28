@@ -25,7 +25,7 @@ import {
   genericErrorHandler,
 } from "./errorHandlers.js"
 
-const app = express()
+export const app = express()
 const port = process.env.PORT || 3001
 
 // ***************************************** MIDDLEWARES **************************************
