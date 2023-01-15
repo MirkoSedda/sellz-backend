@@ -1,6 +1,5 @@
 import express from "express"
 import mongoose from "mongoose"
-import { wakeDyno } from "heroku-keep-awake"
 import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import passport from "passport"
@@ -71,16 +70,7 @@ mongoose.connect(process.env.MONGO_CONNECTION, {
 mongoose.connection.on("connected", () => {
   console.log("Successfully connected to Mongo!")
 
-  const DYNO_URL = "https://my-app.herokuapp.com"
-
-  const opts = {
-    interval: 60,
-    logging: false,
-    stopTimes: { start: "00:00", end: "06:00" },
-  }
-
   app.listen(port, () => {
-    wakeDyno(DYNO_URL, opts)
     console.table(listEndpoints(app))
     console.log(`app running on port ${port}`)
   })
